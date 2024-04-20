@@ -1,5 +1,7 @@
 import sqlite3 as sql
 import logging
+import asyncio
+import aiohttp
 
 from telegram import Update, Bot
 from telegram.ext import Application, ContextTypes, MessageHandler, filters, CommandHandler
@@ -47,6 +49,25 @@ async def call(update: Update, context: ContextTypes.DEFAULT_TYPE):
         mas += f[0] + " "
     await update.message.reply_text(mas, do_quote=False)
 
+async def periodic_internet_check(interval_hours):
+    while True:
+        internet_connected = await check_internet_connection()
+        if internet_connected:
+            logger.info("Интернет-соединение установлено.")
+        else:
+            logger.warning("Отсутствует интернет-соединение.")
+
+        await asyncio.sleep(interval_hours * 3600)
+
+
+async def check_internet_connection():
+    try:
+        async with aiohttp.ClientSession() as session:
+            async with session.get('http://www.google.com') as response:
+                return response.status == 200
+    except aiohttp.ClientError:
+        return False
+
 def main() -> None:
     application = Application.builder().token("6941947875:AAFVzXUviZAgmuZmV1p5dQVhSOtaVcuuEr8").build()
 
@@ -54,6 +75,9 @@ def main() -> None:
     application.add_handler(CommandHandler("remember", remember))
     application.add_handler(MessageHandler(
                             filters.Regex("@all|@все|@чурки"), call))
+
+    loop = asyncio.get_event_loop()
+    loop.create_task(periodic_internet_check(interval_hours=6))
 
     application.run_polling(allowed_updates=Update.ALL_TYPES)
 
