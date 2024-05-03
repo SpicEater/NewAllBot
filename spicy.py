@@ -74,7 +74,7 @@ def main() -> None:
     application.add_handler(CommandHandler("start", link, filters.Regex('link')))
     application.add_handler(CommandHandler("remember", remember))
     application.add_handler(MessageHandler(
-                            filters.Regex("@all|@все|@чурки") | filters.Caption(["@all", "@все", "@чурки"]), call))
+                            filters.Regex("@all|@все|@чурки") | filters.CaptionRegex(r"@all|@все|@чурки"), call))
 
     loop = asyncio.get_event_loop()
     loop.create_task(periodic_internet_check(interval_hours=6))
