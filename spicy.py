@@ -31,7 +31,7 @@ async def remember(update: Update, context: ContextTypes.DEFAULT_TYPE):
         cur = con.cursor()
         if not title: title = 'BOT'
         try:
-            cur.execute("CREATE TABLE IF NOT EXISTS `user` (`name` STRING, `id_user` INTEGER, `title` STRING, `id_chat` INTEGER)")
+            cur.execute("CREATE TABLE IF NOT EXISTS `user` (`name` STRING, `id_user` INTEGER, `title` STRING, `id_chat` INTEGER, tags STRING)")
             cur.execute(f"BEGIN TRANSACTION; ")
             cur.execute(f"SELECT COUNT(*) FROM user WHERE name = '{user}' AND title = '{title}';")
             cur.execute(f"INSERT INTO user VALUES ('{user}', {id_user}, '{title}', {chat});")
@@ -74,7 +74,7 @@ def main() -> None:
     application.add_handler(CommandHandler("start", link, filters.Regex('link')))
     application.add_handler(CommandHandler("remember", remember))
     application.add_handler(MessageHandler(
-                            filters.Regex("@all|@все|@чурки"), call))
+                            filters.Regex("@all|@все|@чурки") | filters.Caption(["@all", "@все", "@чурки"]), call))
 
     loop = asyncio.get_event_loop()
     loop.create_task(periodic_internet_check(interval_hours=6))
