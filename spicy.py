@@ -44,11 +44,11 @@ def remember (user, id_user, chat, title):
             cur.execute(f"SELECT COUNT(*) FROM user WHERE name = '{user}' AND id_chat = '{chat}';")
             if cur.fetchall() != [(0,)]:
                 return False
-            cur.execute(f"INSERT INTO user VALUES ('{user}', {id_user}, '{title}', {chat}, '@all', 0, 0);")
+            cur.execute(f"INSERT INTO user VALUES ('{user}', {id_user}, '{title}', {chat}, '@all', 1, 0);")
             con.commit()
             cur.close()
         except ():
-            cur.execute(f"INSERT INTO user VALUES ('{user}', {id_user}, '{title}', {chat}, '@all', 0, 0);")
+            cur.execute(f"INSERT INTO user VALUES ('{user}', {id_user}, '{title}', {chat}, '@all', 1, 0);")
             con.commit()
             cur.close()
             pass
