@@ -40,15 +40,15 @@ def remember (user, id_user, chat, title):
             cur.execute(f"SELECT COUNT(*) FROM user WHERE name = 'BOT' AND id_chat = '{chat}';")
             if cur.fetchall()[0][0] == 0:
                 # print(f"INSERT INTO user VALUES ('BOT', 0, '{title}', {chat}, 'all', NULL);")
-                cur.execute(f"INSERT INTO user VALUES ('BOT', 0, '{title}', {chat}, 'all', 1, 0);")
+                cur.execute(f"INSERT INTO user VALUES ('BOT', 0, '{title}', {chat}, '@all', 1, 0);")
             cur.execute(f"SELECT COUNT(*) FROM user WHERE name = '{user}' AND id_chat = '{chat}';")
             if cur.fetchall() != [(0,)]:
                 return False
-            cur.execute(f"INSERT INTO user VALUES ('{user}', {id_user}, '{title}', {chat}, 'all', 0, 0);")
+            cur.execute(f"INSERT INTO user VALUES ('{user}', {id_user}, '{title}', {chat}, '@all', 0, 0);")
             con.commit()
             cur.close()
         except ():
-            cur.execute(f"INSERT INTO user VALUES ('{user}', {id_user}, '{title}', {chat}, 'all', 0, 0);")
+            cur.execute(f"INSERT INTO user VALUES ('{user}', {id_user}, '{title}', {chat}, '@all', 0, 0);")
             con.commit()
             cur.close()
             pass
@@ -57,14 +57,12 @@ def remember (user, id_user, chat, title):
 async def call(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user = update.effective_user
     chat = update.effective_chat.id
-    try:
-        text = sql.connect(DB).execute(f"SELECT name FROM user WHERE id_chat = {chat} and name != 'BOT' and push = 1;").fetchall()
-        mas = ''
-        for f in text:
-            mas += f"[{f[0]}](tg://user?id={user.id})" + " "
-        await update.message.reply_text(mas, do_quote=False, parse_mode='MarkdownV2')
-    except:
-        pass
+    text = sql.connect(DB).execute(f"SELECT name, id_user FROM user WHERE id_chat = {chat} and name != 'BOT' and push = 1;").fetchall()
+    mas = ''
+    for f in text:
+        mas += f"[{f[0]}](tg://user?id={f[1]})" + " "
+    mas = "\_".join(mas.split("_"))
+    await update.message.reply_text(mas, do_quote=False, parse_mode='MarkdownV2')
 
 async def periodic_internet_check(interval_hours):
     while True:

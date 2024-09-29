@@ -59,8 +59,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE): ##обро�
         if not remember(user, user_id, chat, title):
             await context.bot.send_message(update.effective_chat.id,
                                            "Вы уже состоите в этом чате")
-        return
-    masage = '          ⚙️ Меню ⚙️ \n\n'
+    masage = '⚙️ Меню ⚙️ \n\n'
     mark = InlineKeyboardMarkup([[InlineKeyboardButton(text='Выбор гуппы', callback_data='group_selection')],
                                    [InlineKeyboardButton(text='Поддержка', callback_data='suport'), InlineKeyboardButton(text='Добавить бота', callback_data='add_bot'), InlineKeyboardButton(text='Донат', callback_data='donat')]])
     try:
@@ -127,9 +126,9 @@ async def add_people(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def delete(update: Update, context: ContextTypes.DEFAULT_TYPE):
     def confrim():
-        con.execute(f"DELETE FROM user WHERE name = '{user}' and title = '{chat}';")
+        con.execute(f"DELETE FROM user WHERE user_id = '{user_id}' and title = '{chat}';")
         con.commit()
-    user = update.effective_user.name
+    user_id = update.effective_user.id
     con = sql.connect(DB)
     chat = update.callback_query.data[7::]
     if update.callback_query.data.startswith('delete1'):
