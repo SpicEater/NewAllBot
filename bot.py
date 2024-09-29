@@ -133,8 +133,8 @@ async def delete(update: Update, context: ContextTypes.DEFAULT_TYPE):
     chat = update.callback_query.data[7::]
     if update.callback_query.data.startswith('delete1'):
         confrim()
-        await update.callback_query.edit_message_text("Вы удалены из группы",)
-        return True
+        await update.callback_query.edit_message_text("Вы удалены из группы", reply_markup = InlineKeyboardMarkup([[InlineKeyboardButton(text='Меню', callback_data='start')]]))
+
     murkup = InlineKeyboardMarkup([[InlineKeyboardButton(text=f'Да', callback_data=f'delete1{chat}'),
                                     InlineKeyboardButton(text=f'Нет', callback_data=f'group {chat}')]])
     await update.callback_query.edit_message_text("Вы уверены что хотите выйти из группы?", reply_markup= murkup)
