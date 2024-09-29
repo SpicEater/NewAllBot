@@ -2,8 +2,6 @@ import sqlite3 as sql
 import logging
 import asyncio
 import aiohttp
-from cryptography.fernet import Fernet
-
 from telegram import Update, Bot
 from telegram.ext import Application, ContextTypes, MessageHandler, filters, CommandHandler
 
