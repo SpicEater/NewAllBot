@@ -18,7 +18,7 @@ async def link(update: Update, context: ContextTypes.DEFAULT_TYPE):
     chat = update.effective_chat.id
     title = update.effective_chat.title
     remember('BOT', 0, chat, title)
-    await update.message.reply_text('Отлично, теперь дай мне права на чтение сообщений и я приступлю к работе')
+    await update.message.reply_text('Отлично, теперь дай мне права на чтение сообщений и пропишите команду /remember')
 
 async def start_remember(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user = update.effective_user.name
