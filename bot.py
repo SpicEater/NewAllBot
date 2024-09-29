@@ -41,11 +41,11 @@ async def add_bot(update: Update, context: ContextTypes.DEFAULT_TYPE): ##обр�
     try:
         await query.edit_message_text(
             'Нажми на кнопку, чтобы добавить бота',
-            reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton(text='Ссылка', url=url)], [InlineKeyboardButton(text='Меню', callback_data='hellp')]]))
+            reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton(text='Ссылка', url=url)], [InlineKeyboardButton(text='Меню', callback_data='start')]]))
     except:
         await update.message.reply_text(
             'Нажми на кнопку, чтобы добавить бота',
-            reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton(text='Ссылка', url=url)], [InlineKeyboardButton(text='Меню', callback_data='hellp')]]))
+            reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton(text='Ссылка', url=url)], [InlineKeyboardButton(text='Меню', callback_data='start')]]))
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE): ##оброботчик команды /start
     args = context.args
@@ -97,7 +97,7 @@ async def group(update: Update, context: ContextTypes.DEFAULT_TYPE):
     args = update.callback_query.data[6::]
     information = f'{args}\n' \
                   f''
-    markup =  InlineKeyboardMarkup([[InlineKeyboardButton(text= 'Добавить людей', callback_data=f'add_people {args}'),InlineKeyboardButton(text= 'Уведомления', callback_data=f'notify   {args}')],
+    markup =  InlineKeyboardMarkup([[InlineKeyboardButton(text= 'Добавить людей (BETA)', callback_data=f'add_people {args}'),InlineKeyboardButton(text= 'Уведомления', callback_data=f'notify   {args}')],
                                     [InlineKeyboardButton(text= 'Выйти из группы', callback_data=f'delete {args}'),InlineKeyboardButton(text= 'Назад', callback_data=f'start')]])
     try:
         await update.callback_query.edit_message_text(information, reply_markup=markup)
@@ -121,7 +121,7 @@ async def add_people(update: Update, context: ContextTypes.DEFAULT_TYPE):
     args = ''.join(k if k != " " else "25zwV56" for k in list(args))
     link = context.bot.link + f'?start={args}25zwV56{chat[0][0]}'
     await update.callback_query.edit_message_text(
-        f"Поделитесь этой ссылкой для присоединения других пользователей: {link}", reply_markup=
+        f"Пока эта функция работает только для чатов с английским названием, имейте это в виду. Поделитесь этой ссылкой для присоединения других пользователей: {link}", reply_markup=
         InlineKeyboardMarkup([[InlineKeyboardButton(text='Назад', callback_data=f'group {name_chat}')]]))
 
 async def delete(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -166,7 +166,7 @@ def main() -> None:
     application = Application.builder().token("6572779723:AAGvYhji-PdqXZWj72E1lrAUjqOMYT5Tz0E").build()
 
     application.add_handler(CommandHandler("start", start))
-    application.add_handler(CallbackQueryHandler(start, pattern='^start$'))
+    application.add_handler(CallbackQueryHandler(start, pattern='start'))
 
     application.add_handler(MessageHandler(filters.Regex('^/add_bot|Добавить бота$'), add_bot))
     application.add_handler(CallbackQueryHandler(add_bot, '^add_bot$'))
