@@ -17,6 +17,9 @@ logger = logging.getLogger(__name__)
 DB = 'user.db'
 
 async def link(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    chat = update.effective_chat.id
+    title = update.effective_chat.title
+    remember('BOT', 0, chat, title)
     await update.message.reply_text('Отлично, теперь дай мне права на чтение сообщений и я приступлю к работе')
 
 async def start_remember(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -24,51 +27,46 @@ async def start_remember(update: Update, context: ContextTypes.DEFAULT_TYPE):
     id_user = update.effective_user.id
     chat = update.effective_chat.id
     title = update.effective_chat.title
-    remember(user, id_user, chat, title)
+    if not remember(user, id_user, chat, title):
+        await update.message.reply_text('Вы уже в списке', do_quote=False)
 
-def load_key():
-    return open("secret.key", "rb").read()
-
-def encrypt_data(data):
-    key = load_key()
-    fernet = Fernet(key)
-    encrypted_data = fernet.encrypt(data.encode())
-    return encrypted_data
-
-
-# Расшифровка данных
-def decrypt_data(encrypted_data):
-    key = load_key()
-    fernet = Fernet(key)
-    decrypted_data = fernet.decrypt(encrypted_data).decode()
-    return decrypted_data
 def remember (user, id_user, chat, title):
-    title = encrypt_data(title)
     con = sql.connect(DB)
     with con:
         cur = con.cursor()
         if not title: title = 'BOT'
+        # title = title.replace(" ", "@#!")
         try:
-            cur.execute("CREATE TABLE IF NOT EXISTS `user` (`name` STRING, `id_user` INTEGER, `title` STRING, `id_chat` INTEGER, tags STRING, 'admin' INTEGER)")
+            con.execute("CREATE TABLE IF NOT EXISTS `user` (`name` STRING, `id_user` INTEGER, `title` STRING, `id_chat` INTEGER, tags STRING, 'push' INTEGER, 'message' INTEGER)")
             cur.execute(f"BEGIN TRANSACTION; ")
-            cur.execute(f"SELECT COUNT(*) FROM user WHERE name = '{user}' AND title = '{title}';")
-            if cur.fetchall():
+            cur.execute(f"SELECT COUNT(*) FROM user WHERE name = 'BOT' AND id_chat = '{chat}';")
+            if cur.fetchall()[0][0] == 0:
+                # print(f"INSERT INTO user VALUES ('BOT', 0, '{title}', {chat}, 'all', NULL);")
+                cur.execute(f"INSERT INTO user VALUES ('BOT', 0, '{title}', {chat}, 'all', 1, 0);")
+            cur.execute(f"SELECT COUNT(*) FROM user WHERE name = '{user}' AND id_chat = '{chat}';")
+            if cur.fetchall() != [(0,)]:
                 return False
-            cur.execute(f"INSERT INTO user VALUES ('{user}', {id_user}, '{title}', {chat});")
-            cur.execute("COMMIT;")
+            cur.execute(f"INSERT INTO user VALUES ('{user}', {id_user}, '{title}', {chat}, 'all', 0, 0);")
             con.commit()
             cur.close()
-        except:
+        except ():
+            cur.execute(f"INSERT INTO user VALUES ('{user}', {id_user}, '{title}', {chat}, 'all', 0, 0);")
+            con.commit()
+            cur.close()
             pass
+        return True
 
 async def call(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user = update.effective_user
     chat = update.effective_chat.id
-    text = sql.connect(DB).execute(f"SELECT name FROM user WHERE id_chat = {chat} and title != 'BOT';").fetchall()
-    mas = ''
-    for f in text:
-        mas += f[0] + " "
-    await update.message.reply_text(mas, do_quote=False)
+    try:
+        text = sql.connect(DB).execute(f"SELECT name FROM user WHERE id_chat = {chat} and name != 'BOT' and push = 1;").fetchall()
+        mas = ''
+        for f in text:
+            mas += f"[{f[0]}](tg://user?id={user.id})" + " "
+        await update.message.reply_text(mas, do_quote=False, parse_mode='MarkdownV2')
+    except:
+        pass
 
 async def periodic_internet_check(interval_hours):
     while True:
