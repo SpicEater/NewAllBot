@@ -59,9 +59,14 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE): ##обро�
         if not remember(user, user_id, chat, title):
             await context.bot.send_message(update.effective_chat.id,
                                            "Вы уже состоите в этом чате")
-    masage = '⚙️ Меню ⚙️ \n\n'
-    mark = InlineKeyboardMarkup([[InlineKeyboardButton(text='Выбор гуппы', callback_data='group_selection')],
-                                   [InlineKeyboardButton(text='Поддержка', callback_data='suport'), InlineKeyboardButton(text='Добавить бота', callback_data='add_bot'), InlineKeyboardButton(text='Донат', callback_data='donat')]])
+    masage = 'Привет! Я бот, который поможет тебе быстро упомянуть всех участников гуппы. Вот что я умею:\n\n' \
+             '📋 Выбрать гуппу — выбери гуппу из списка уже добавленных для настройки.\n\n' \
+             '➕ Добавить бота — добавь меня в новый чат для работы.\n\n' \
+             'ℹ️ Поддержка — напиши в поддержку, если нужна помощь.\n\n' \
+             '💰 Донат — поддержи проект и помоги мне стать лучше! \n\n' \
+             'Нажми на кнопку ниже, чтобы выбрать действие!'
+    mark = InlineKeyboardMarkup([[InlineKeyboardButton(text='📋Выбрать гуппу', callback_data='group_selection')],[InlineKeyboardButton(text='➕Добавить бота', callback_data='add_bot')],
+                                   [InlineKeyboardButton(text='🔒Поддержка', callback_data='suport'), InlineKeyboardButton(text='🔒Донат', callback_data='donat')]])
     try:
         await update.callback_query.edit_message_text(masage,reply_markup= mark)
     except:
@@ -84,8 +89,8 @@ async def group_selection(update: Update, context: ContextTypes.DEFAULT_TYPE):
         w = []
         for i in cur.fetchall():
             w.append(i[0])
-        masage = 'Выберите группу в которую хотите добавить человека'
-        button = [[InlineKeyboardButton(i, callback_data=f'group {i}')] for i in w] ##
+        masage = '📋Выбрите гуппу'
+        button = [[InlineKeyboardButton(i, callback_data=f'group {i}')] for i in w]
 
         mark = InlineKeyboardMarkup(button)
         try:
@@ -157,10 +162,19 @@ async def notify(update: Update, context: ContextTypes.DEFAULT_TYPE):
         push_value = 1
         push_emojis = '❌'
     con.close()
-    murkup = InlineKeyboardMarkup([[InlineKeyboardButton(text=f'{push_emojis}Упоменуть в чате', callback_data=f'notify 1{push_value}{chat}'),
-                                    InlineKeyboardButton(text=f'🔒Сообщение в боте', callback_data=f'notify 2{push_value}{chat}')],
-                                   [InlineKeyboardButton(text='Назад', callback_data=f'group {chat}')]])
-    await update.callback_query.edit_message_text("Уведомления", reply_markup= murkup)
+    murkup = InlineKeyboardMarkup(
+        [[InlineKeyboardButton(text=f'{push_emojis}Упоменуть в чате', callback_data=f'notify 1{push_value}{chat}'),
+          InlineKeyboardButton(text=f'🔒Сообщение в боте', callback_data=f'notify 2{push_value}{chat}')],
+         [InlineKeyboardButton(text='Назад', callback_data=f'group {chat}')]])
+    await update.callback_query.edit_message_text("Уведомления", reply_markup=murkup)
+
+async def suport(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    murkup = InlineKeyboardMarkup([[InlineKeyboardButton(text='Отмена', callback_data='start')]])
+    await update.callback_query.edit_message_text(
+        "Напишите проблему с которой вы сталкнулись во время работы с ботом. Ваши отзывы, предложения и комментарии помогают нам улучшать функционал, исправлять ошибки и делать бота более удобным для всех пользователей.",
+        reply_markup=murkup)
+
+
 
 def main() -> None:
     application = Application.builder().token("6572779723:AAGvYhji-PdqXZWj72E1lrAUjqOMYT5Tz0E").build()
