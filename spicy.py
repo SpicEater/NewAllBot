@@ -56,7 +56,7 @@ def remember (user, id_user, chat, title):
 async def call(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user = update.effective_user
     chat = update.effective_chat.id
-    text = sql.connect(DB).execute(f"SELECT name, id_user FROM user WHERE id_chat = {chat} and name != 'BOT' and push = 1;").fetchall()
+    text = sql.connect(DB).execute(f"SELECT name, id_user FROM user WHERE id_chat = {chat} and name != 'BOT' and push = 1 and id_user != {user.id};").fetchall()
     mas = ''
     for f in text:
         mas += f"[{f[0]}](tg://user?id={f[1]})" + " "
@@ -88,7 +88,7 @@ def main() -> None:
     application.add_handler(CommandHandler("start", link, filters.Regex('link')))
     application.add_handler(CommandHandler("remember", start_remember))
     application.add_handler(MessageHandler(
-                            filters.Regex("@all|@все|@чурки|@гойда") | filters.CaptionRegex(r"@all|@все|@чурки|@гойда"), call))
+                            filters.Regex("@all|@все|@чурки|@гойда|@spicyeater_bot") | filters.CaptionRegex(r"@all|@все|@чурки|@гойда"), call))
 
     loop = asyncio.get_event_loop()
     loop.create_task(periodic_internet_check(interval_hours=6))
