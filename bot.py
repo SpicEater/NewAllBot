@@ -3,6 +3,7 @@ import logging
 import asyncio
 import aiohttp
 import telegram
+import re
 import sqlite3 as sql
 from telegram import Update, helpers, InlineKeyboardMarkup, InlineKeyboardButton, ReplyKeyboardMarkup, ReplyKeyboardRemove, ChatInviteLink
 from telegram.ext import Application, ContextTypes, MessageHandler, filters, CommandHandler, CallbackQueryHandler
@@ -54,23 +55,29 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE): ##обро�
 
     if args:
         args = args[0].split('25zwV56')
+        sear = re.search(r"(.*?)-", args[0])
+        decode_spes = ''.join(chr(int(code)) for code in sear.group(1).split('I'))
+        text = args[0].replace(sear.group(1), decode_spes)
+        encoded_bytes = text.encode('ascii')
+        args[0] = encoded_bytes.decode('punycode')
         chat = int(''.join(args[-1:]))
         title = " ".join(args[:-1])
         if not remember(user, user_id, chat, title):
             await context.bot.send_message(update.effective_chat.id,
-                                           "Вы уже состоите в этом чате")
-    masage = 'Привет! Я бот, который поможет тебе быстро упомянуть всех участников гуппы. Вот что я умею:\n\n' \
-             '📋 Выбрать гуппу — выбери гуппу из списка уже добавленных для настройки.\n\n' \
-             '➕ Добавить бота — добавь меня в новый чат для работы.\n\n' \
-             'ℹ️ Поддержка — напиши в поддержку, если нужна помощь.\n\n' \
-             '💰 Донат — поддержи проект и помоги мне стать лучше! \n\n' \
-             'Нажми на кнопку ниже, чтобы выбрать действие!'
-    mark = InlineKeyboardMarkup([[InlineKeyboardButton(text='📋Выбрать гуппу', callback_data='group_selection')],[InlineKeyboardButton(text='➕Добавить бота', callback_data='add_bot')],
-                                   [InlineKeyboardButton(text='🔒Поддержка', callback_data='suport'), InlineKeyboardButton(text='🔒Донат', callback_data='donat')]])
-    try:
-        await update.callback_query.edit_message_text(masage,reply_markup= mark)
-    except:
-        await update.message.reply_text(masage, reply_markup=mark)
+                                           "Вы уже состоите в этом чате", reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton(text= 'Назад', callback_data=f'start')]]))
+    else:
+        masage = 'Привет! Этот бот поможет тебе быстро упомянуть всех участников гуппы. Вот что он может:\n\n' \
+                 '📋 Выбрать гуппу — выбери гуппу из списка уже добавленных для настройки.\n\n' \
+                 '➕ Добавить бота — добавь меня в новый чат для работы.\n\n' \
+                 'ℹ️ Поддержка — напиши в поддержку, если нужна помощь.\n\n' \
+                 '💰 Донат — поддержи проект и помоги мне стать лучше! \n\n' \
+                 'Нажми на кнопку ниже, чтобы выбрать действие!'
+        mark = InlineKeyboardMarkup([[InlineKeyboardButton(text='📋Выбрать гуппу', callback_data='group_selection')],[InlineKeyboardButton(text='➕Добавить бота', callback_data='add_bot')],
+                                       [InlineKeyboardButton(text='ℹ️Поддержка', callback_data='suport'), InlineKeyboardButton(text='🔒Донат', callback_data='donat')]])
+        try:
+            await update.callback_query.edit_message_text(masage,reply_markup= mark)
+        except:
+            await update.message.reply_text(masage, reply_markup=mark)
 
 async def group_selection(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id= str(update.effective_user.id)
@@ -102,7 +109,7 @@ async def group(update: Update, context: ContextTypes.DEFAULT_TYPE):
     args = update.callback_query.data[6::]
     information = f'{args}\n' \
                   f''
-    markup =  InlineKeyboardMarkup([[InlineKeyboardButton(text= 'Добавить людей (BETA)', callback_data=f'add_people {args}'),InlineKeyboardButton(text= 'Уведомления', callback_data=f'notify   {args}')],
+    markup =  InlineKeyboardMarkup([[InlineKeyboardButton(text= 'Добавить людей', callback_data=f'add_people {args}'),InlineKeyboardButton(text= 'Уведомления', callback_data=f'notify   {args}')],
                                     [InlineKeyboardButton(text= 'Выйти из группы', callback_data=f'delete {args}'),InlineKeyboardButton(text= 'Назад', callback_data=f'start')]])
     try:
         await update.callback_query.edit_message_text(information, reply_markup=markup)
@@ -123,10 +130,15 @@ async def add_people(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 await context.bot.send_message(update.effective_chat.id,
                                                "Для того чтобы пригласить когото нужно чтобы хотябы у одного человека были включены уведомления. Попробуйте перелогиниться, прописав команду /remember в чате")
     name_chat = args
-    args = ''.join(k if k != " " else "25zwV56" for k in list(args))
-    link = context.bot.link + f'?start={args}25zwV56{chat[0][0]}'
+    text = str(args.encode('punycode'))
+    text = text[2:len(text) - 1]
+    sear = re.search(r"(.*?)-", text)
+    encode_spes = 'I'.join(str(ord(char)) for char in sear.group(1))
+    text = text.replace(sear.group(1), encode_spes)
+    text = ''.join(k if k != " " else "32I" for k in list(text))
+    link = context.bot.link + f'?start={text}25zwV56{chat[0][0]}'
     await update.callback_query.edit_message_text(
-        f"Пока эта функция работает только для чатов с английским названием, имейте это в виду. Поделитесь этой ссылкой для присоединения других пользователей: {link}", reply_markup=
+        f"Поделитесь этой ссылкой для присоединения других пользователей:\n{link}", reply_markup=
         InlineKeyboardMarkup([[InlineKeyboardButton(text='Назад', callback_data=f'group {name_chat}')]]))
 
 async def delete(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -166,10 +178,13 @@ async def notify(update: Update, context: ContextTypes.DEFAULT_TYPE):
         [[InlineKeyboardButton(text=f'{push_emojis}Упоменуть в чате', callback_data=f'notify 1{push_value}{chat}'),
           InlineKeyboardButton(text=f'🔒Сообщение в боте', callback_data=f'notify 2{push_value}{chat}')],
          [InlineKeyboardButton(text='Назад', callback_data=f'group {chat}')]])
-    await update.callback_query.edit_message_text("Уведомления", reply_markup=murkup)
+    await update.callback_query.edit_message_text("🔔Уведомления \n\n"
+                                                  "Здесь вы можете включить или выключит уведомления для группы"
+                                                  "Упоменуть в чате - ваш ник будет упомянут в чате"
+                                                  "Сообщение в боте - вам придет сообщение от бота что вас упомянули", reply_markup=murkup)
 
 async def suport(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    murkup = InlineKeyboardMarkup([[InlineKeyboardButton(text='Отмена', callback_data='start')]])
+    murkup = InlineKeyboardMarkup([[InlineKeyboardButton(text='Поддержка', url='https://t.me/SuportAllBot?start=start')], [InlineKeyboardButton(text='Отмена', callback_data='start')]])
     await update.callback_query.edit_message_text(
         "Напишите проблему с которой вы сталкнулись во время работы с ботом. Ваши отзывы, предложения и комментарии помогают нам улучшать функционал, исправлять ошибки и делать бота более удобным для всех пользователей.",
         reply_markup=murkup)
@@ -185,12 +200,16 @@ def main() -> None:
     application.add_handler(MessageHandler(filters.Regex('^/add_bot|Добавить бота$'), add_bot))
     application.add_handler(CallbackQueryHandler(add_bot, '^add_bot$'))
 
+    application.add_handler(MessageHandler(filters.Regex('^/suport|Поддержка$'), suport))
+    application.add_handler(CallbackQueryHandler(suport, '^suport$'))
+
     application.add_handler(CommandHandler("group_selection", group_selection))
     application.add_handler(CallbackQueryHandler(group_selection, pattern='^group_selection'))
 
     application.add_handler(CallbackQueryHandler(group, pattern = 'group'))
 
     application.add_handler(CallbackQueryHandler(add_people, pattern='add_people'))
+
 
     application.add_handler(CallbackQueryHandler(notify, pattern='notify'))
 

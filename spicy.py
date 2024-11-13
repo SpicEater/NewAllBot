@@ -2,6 +2,7 @@ import sqlite3 as sql
 import logging
 import asyncio
 import aiohttp
+import telegram.error
 from telegram import Update, Bot
 from telegram.ext import Application, ContextTypes, MessageHandler, filters, CommandHandler
 
@@ -38,7 +39,8 @@ def remember (user, id_user, chat, title):
             con.execute("CREATE TABLE IF NOT EXISTS `user` (`name` TEXT, `id_user` INTEGER, `title` TEXT, `id_chat` INTEGER, tags TEXT, 'push' INTEGER, 'message' INTEGER)")
             cur.execute(f"BEGIN TRANSACTION; ")
             cur.execute(f"SELECT COUNT(*) FROM user WHERE name = 'BOT' AND id_chat = '{chat}';")
-            if cur.fetchall()[0][0] == 0:
+            prov = cur.fetchall()[0][0]
+            if prov == 0:
                 cur.execute(f"INSERT INTO user VALUES ('BOT', 0, '{title}', {chat}, '@all', 1, 0);")
             cur.execute(f"SELECT COUNT(*) FROM user WHERE name = '{user}' AND id_chat = '{chat}';")
             if cur.fetchall() != [(0,)]:
@@ -61,7 +63,9 @@ async def call(update: Update, context: ContextTypes.DEFAULT_TYPE):
     for f in text:
         mas += f"[{f[0]}](tg://user?id={f[1]})" + " "
     mas = "\_".join(mas.split("_"))
-    await update.message.reply_text(mas, do_quote=False, parse_mode='MarkdownV2')
+    try: await update.message.reply_text(mas, do_quote=False, parse_mode='MarkdownV2')
+    except telegram.error.BadRequest: pass
+
 
 async def periodic_internet_check(interval_hours):
     while True:
@@ -72,7 +76,7 @@ async def periodic_internet_check(interval_hours):
             logger.warning("Отсутствует интернет-соединение.")
 
         await asyncio.sleep(interval_hours * 3600)
-
+        
 
 async def check_internet_connection():
     try:
@@ -92,7 +96,6 @@ def main() -> None:
 
     loop = asyncio.get_event_loop()
     loop.create_task(periodic_internet_check(interval_hours=6))
-
     application.run_polling(allowed_updates=Update.ALL_TYPES)
 
 if __name__ == "__main__":
