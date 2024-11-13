@@ -62,7 +62,6 @@ async def call(update: Update, context: ContextTypes.DEFAULT_TYPE):
     mas = ''
     for f in text:
         mas += f"[{f[0]}](tg://user?id={f[1]})" + " "
-    mas = "\_".join(mas.split("_"))
     try: await update.message.reply_text(mas, do_quote=False, parse_mode='MarkdownV2')
     except telegram.error.BadRequest: pass
 

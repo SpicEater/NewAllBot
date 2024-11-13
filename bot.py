@@ -179,8 +179,8 @@ async def notify(update: Update, context: ContextTypes.DEFAULT_TYPE):
           InlineKeyboardButton(text=f'🔒Сообщение в боте', callback_data=f'notify 2{push_value}{chat}')],
          [InlineKeyboardButton(text='Назад', callback_data=f'group {chat}')]])
     await update.callback_query.edit_message_text("🔔Уведомления \n\n"
-                                                  "Здесь вы можете включить или выключит уведомления для группы"
-                                                  "Упоменуть в чате - ваш ник будет упомянут в чате"
+                                                  "Здесь вы можете включить или выключит уведомления для группы\n"
+                                                  "Упоменуть в чате - ваш ник будет упомянут в чате\n"
                                                   "Сообщение в боте - вам придет сообщение от бота что вас упомянули", reply_markup=murkup)
 
 async def suport(update: Update, context: ContextTypes.DEFAULT_TYPE):
